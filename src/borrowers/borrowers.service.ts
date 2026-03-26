@@ -65,6 +65,18 @@ export class BorrowersService {
 
   async remove(id: string) {
     const borrower = await this.findOne(id);
-    return this.borrowerRepository.remove(borrower);
+
+    borrower.isActive = false;
+    borrower.deletedAt = new Date();
+
+    return this.borrowerRepository.save(borrower);
+  }
+
+  async restore(id: string) {
+    const borrower = await this.findOne(id);
+
+    borrower.isActive = true;
+
+    return this.borrowerRepository.save(borrower);
   }
 }

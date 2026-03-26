@@ -52,4 +52,9 @@ export class BorrowersController {
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.borrowersService.remove(id);
   }
+
+  @Patch(':id/restore')
+  restore(@Param('id', ParseUUIDPipe) id: string) {
+    return this.borrowersService.restore(id);
+  }
 }
