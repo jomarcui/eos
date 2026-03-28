@@ -1,10 +1,13 @@
+// src/users/dto/create-user.dto.ts
+import { IsEmail, IsString, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+
 export class CreateUserDto {
-  id: string;
+  @IsEmail()
+  @Transform(({ value }) => (value as string).toLowerCase().trim())
   email: string;
-  password_hash: string;
-  role: string;
-  status: string;
-  created_at: Date;
-  updated_at: Date;
-  created_by: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
 }

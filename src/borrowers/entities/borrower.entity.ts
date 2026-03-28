@@ -1,11 +1,9 @@
+import { BaseEntity } from 'src/common/entities/base.entity';
 import { Loan } from 'src/loans/entities/loan.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany, BeforeInsert, BeforeUpdate } from 'typeorm';
 
 @Entity({ schema: 'loan', name: 'borrowers' })
-export class Borrower {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Borrower extends BaseEntity {
   @Column({ name: 'first_name', length: 100 })
   firstName: string;
 
@@ -28,22 +26,17 @@ export class Borrower {
   isActive: boolean;
 
   @Column({
-    name: 'created_at',
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
-  createdAt: Date;
-
-  @Column({
-    name: 'updated_at',
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
-  updatedAt: Date;
-
-  @Column({
     name: 'deleted_at',
+    nullable: true,
     type: 'timestamp',
   })
   deletedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  normalizeEmail() {
+    if (this.email) {
+      this.email = this.email.trim().toLowerCase();
+    }
+  }
 }

@@ -1,48 +1,50 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
-  UseGuards,
+  Patch,
+  Get,
+  ParseUUIDPipe,
 } from '@nestjs/common';
+import { instanceToPlain } from 'class-transformer';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/auth/jwt.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // -------------------------------
+  // Create a new user
+  // -------------------------------
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() dto: CreateUserDto) {
+    // You can optionally pass creatorId if authenticated
+    return this.usersService.create(dto);
   }
 
   @Get()
-  @Roles('admin')
-  findAll() {
+  async findAll() {
     return this.usersService.findAll();
   }
 
+  // -------------------------------
+  // Get user by ID
+  // -------------------------------
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    const user = await this.usersService.findOne(id);
+    return instanceToPlain(user);
   }
 
+  // -------------------------------
+  // Update user
+  // -------------------------------
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    // You can optionally pass updaterId if authenticated
+    return this.usersService.update(id, dto);
   }
 }

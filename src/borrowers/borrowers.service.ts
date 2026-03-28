@@ -44,9 +44,11 @@ export class BorrowersService {
   }
 
   async findOne(id: string) {
-    const borrower = await this.borrowerRepository.findOne({
-      where: { id },
-    });
+    const borrower = await this.borrowerRepository
+      .createQueryBuilder('borrower')
+      .leftJoinAndSelect('borrower.loans', 'loan')
+      .where('borrower.id = :id', { id })
+      .getOne();
 
     if (!borrower) {
       throw new NotFoundException('Borrower not found');

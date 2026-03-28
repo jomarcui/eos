@@ -1,14 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Loan } from './entities/loan.entity';
-import { Borrower } from '../borrowers/entities/borrower.entity';
-import { AmortizationSchedule } from './entities/amortization-schedule.entity';
-
+import { LoanSchedule } from './entities/loan-schedule.entity';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { UpdateLoanDto } from './dto/update-loan.dto';
-import { AmortizationItem } from './types/amortization-item.type';
+import { LoanStatus } from './enums/loan-status.enum';
+import { LoanTransaction } from './entities/loan-transactions.entity';
 
 @Injectable()
 export class LoansService {
@@ -16,51 +19,92 @@ export class LoansService {
     @InjectRepository(Loan)
     private loanRepository: Repository<Loan>,
 
-    @InjectRepository(Borrower)
-    private borrowerRepository: Repository<Borrower>,
+    @InjectRepository(LoanSchedule)
+    private scheduleRepository: Repository<LoanSchedule>,
 
-    @InjectRepository(AmortizationSchedule)
-    private scheduleRepository: Repository<AmortizationSchedule>,
+    @InjectRepository(LoanTransaction)
+    private transactionRepository: Repository<LoanTransaction>,
   ) {}
 
-  async create(createLoanDto: CreateLoanDto) {
-    const { borrowerId, principal, interestRate, termMonths, startDate } =
-      createLoanDto;
+  async create(dto: CreateLoanDto) {
+    const monthlyRate = dto.interestRate / 100 / 12;
 
-    const borrower = await this.borrowerRepository.findOne({
-      where: { id: borrowerId },
-    });
+    const monthlyPayment =
+      (dto.principal * monthlyRate) /
+      (1 - Math.pow(1 + monthlyRate, -dto.termMonths));
 
-    if (!borrower) {
-      throw new NotFoundException('Borrower not found');
-    }
+    const maturityDate = new Date(dto.startDate);
+    maturityDate.setMonth(maturityDate.getMonth() + dto.termMonths);
+
+    const loanNumber = await this.generateLoanNumber();
 
     const loan = this.loanRepository.create({
-      borrower,
-      principal,
-      interestRate,
-      termMonths,
-      startDate,
-      balance: principal,
+      loanNumber,
+      borrowerId: dto.borrowerId,
+      principal: dto.principal,
+      interestRate: dto.interestRate,
+      termMonths: dto.termMonths,
+      monthlyPayment,
+      balance: dto.principal,
+      startDate: dto.startDate,
+      maturityDate,
     });
 
     await this.loanRepository.save(loan);
 
-    const schedule = this.generateSchedule(
-      principal,
-      interestRate,
-      termMonths,
-      startDate,
+    const schedules = this.generateSchedule(
+      loan.id,
+      dto.startDate,
+      dto.principal,
+      monthlyRate,
+      dto.termMonths,
+      monthlyPayment,
     );
 
-    await this.scheduleRepository.save(
-      schedule.map((item) => ({
-        ...item,
-        loan,
-      })),
-    );
+    await this.scheduleRepository.save(schedules);
 
     return loan;
+  }
+
+  async generateLoanNumber(): Promise<string> {
+    const count = await this.loanRepository.count();
+    const year = new Date().getFullYear();
+
+    return `LN-${year}-${String(count + 1).padStart(6, '0')}`;
+  }
+
+  generateSchedule(
+    loanId: string,
+    startDate: Date,
+    principal: number,
+    monthlyRate: number,
+    term: number,
+    payment: number,
+  ) {
+    const schedules: Partial<LoanSchedule>[] = [];
+    let balance = principal;
+
+    for (let i = 1; i <= term; i++) {
+      const interest = balance * monthlyRate;
+      const principalPayment = payment - interest;
+
+      balance -= principalPayment;
+
+      const dueDate = new Date(startDate);
+      dueDate.setMonth(dueDate.getMonth() + i);
+
+      schedules.push({
+        loanId,
+        installment: i,
+        principal: principalPayment,
+        interest,
+        payment,
+        balance: balance < 0 ? 0 : balance,
+        dueDate,
+      });
+    }
+
+    return schedules;
   }
 
   findAll() {
@@ -73,52 +117,58 @@ export class LoansService {
   findOne(id: string) {
     return this.loanRepository.findOne({
       where: { id },
-      relations: ['borrower', 'schedule'],
+      relations: ['borrower', 'schedules'],
     });
   }
 
-  update(id: string, updateLoanDto: UpdateLoanDto) {
-    return this.loanRepository.update(id, updateLoanDto);
-  }
+  async update(id: string, dto: UpdateLoanDto) {
+    const loan = await this.loanRepository.findOne({
+      where: { id },
+    });
 
-  remove(id: string) {
-    return this.loanRepository.delete(id);
-  }
-
-  generateSchedule(
-    principal: number,
-    annualInterest: number,
-    months: number,
-    startDate: Date,
-  ): AmortizationItem[] {
-    const monthlyRate = annualInterest / 100 / 12;
-
-    const payment =
-      (principal * (monthlyRate * Math.pow(1 + monthlyRate, months))) /
-      (Math.pow(1 + monthlyRate, months) - 1);
-
-    let balance = principal;
-
-    const schedule: AmortizationItem[] = [];
-
-    for (let i = 1; i <= months; i++) {
-      const interest = balance * monthlyRate;
-      const principalPayment = payment - interest;
-
-      balance -= principalPayment;
-
-      const dueDate = new Date(startDate);
-      dueDate.setMonth(dueDate.getMonth() + i);
-
-      schedule.push({
-        installmentNumber: i,
-        dueDate,
-        principalDue: principalPayment,
-        interestDue: interest,
-        totalDue: payment,
-      });
+    if (!loan) {
+      throw new NotFoundException('Loan not found');
     }
 
-    return schedule;
+    // 🚨 Business rule: active loans cannot be modified
+    if (
+      loan.status === LoanStatus.ACTIVE ||
+      loan.status === LoanStatus.DISBURSED
+    ) {
+      throw new BadRequestException('Active loans cannot be modified');
+    }
+
+    Object.assign(loan, dto);
+
+    return this.loanRepository.save(loan);
+  }
+
+  async disburse(id: string) {
+    const loan = await this.loanRepository.findOne({
+      where: { id },
+    });
+
+    if (!loan) {
+      throw new NotFoundException('Loan not found');
+    }
+
+    if (loan.status !== LoanStatus.APPROVED) {
+      throw new BadRequestException('Only approved loans can be disbursed');
+    }
+
+    loan.status = LoanStatus.DISBURSED;
+    loan.disbursedAt = new Date();
+
+    await this.loanRepository.save(loan);
+
+    const transaction = this.transactionRepository.create({
+      loanId: loan.id,
+      type: 'DISBURSEMENT',
+      amount: loan.principal,
+    });
+
+    await this.transactionRepository.save(transaction);
+
+    return loan;
   }
 }

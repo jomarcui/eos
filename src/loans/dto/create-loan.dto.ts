@@ -1,10 +1,11 @@
-import { IsUUID, IsNumber, IsDateString } from 'class-validator';
+import { IsUUID, IsNumber, IsDateString, Min } from 'class-validator';
 
 export class CreateLoanDto {
   @IsUUID()
   borrowerId: string;
 
   @IsNumber()
+  @Min(1)
   principal: number;
 
   @IsNumber()

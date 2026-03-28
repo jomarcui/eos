@@ -1,12 +1,15 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Loan } from './loan.entity';
 
-@Entity({ name: 'amortization_schedule' })
+@Entity('amortization_schedules')
 export class AmortizationSchedule {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Loan, {
+  @Column()
+  loanId: string;
+
+  @ManyToOne(() => Loan, (loan) => loan.schedules, {
     onDelete: 'CASCADE',
   })
   loan: Loan;
@@ -14,17 +17,20 @@ export class AmortizationSchedule {
   @Column()
   installmentNumber: number;
 
-  @Column({ type: 'date' })
+  @Column('decimal')
+  principal: number;
+
+  @Column('decimal')
+  interest: number;
+
+  @Column('decimal')
+  payment: number;
+
+  @Column('decimal')
+  balance: number;
+
+  @Column()
   dueDate: Date;
-
-  @Column('decimal', { precision: 12, scale: 2 })
-  principalDue: number;
-
-  @Column('decimal', { precision: 12, scale: 2 })
-  interestDue: number;
-
-  @Column('decimal', { precision: 12, scale: 2 })
-  totalDue: number;
 
   @Column({ default: false })
   paid: boolean;

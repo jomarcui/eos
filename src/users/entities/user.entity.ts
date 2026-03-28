@@ -1,24 +1,25 @@
-import {
-  Entity,
-  Column,
-  CreateDateColumn,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Entity, Column } from 'typeorm';
+import { BaseEntity } from '../../common/entities/base.entity';
+import { UserRole } from '../enums/user-roles.enums';
+import { UserStatus } from '../enums/user-status.enums';
 
-@Entity({ schema: 'auth', name: 'users' })
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column()
+@Entity('users')
+export class User extends BaseEntity {
+  @Column({ unique: true })
   email: string;
 
-  @Column({ name: 'password_hash' })
+  @Column({ name: 'password_hash', select: false })
   passwordHash: string;
 
-  @Column()
+  @Column({ default: UserRole.ADMIN })
   role: string;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  @Column({ default: UserStatus.ACTIVE })
+  status: string;
+
+  @Column({ name: 'created_by_id', nullable: true })
+  createdById?: string;
+
+  @Column({ name: 'updated_by_id', nullable: true })
+  updatedById?: string;
 }

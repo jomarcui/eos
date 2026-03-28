@@ -1,7 +1,8 @@
 export enum LoanStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  COMPLETED = 'COMPLETED',
-  DEFAULTED = 'DEFAULTED',
-  CANCELLED = 'CANCELLED',
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  DISBURSED = 'disbursed',
+  ACTIVE = 'active',
+  CLOSED = 'closed',
+  REJECTED = 'rejected',
 }

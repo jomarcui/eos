@@ -8,11 +8,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtAuthGuard } from './auth/jwt.guard';
 import { BorrowersModule } from './borrowers/borrowers.module';
 import { LoansModule } from './loans/loans.module';
+import { SeedService } from './users/seed.service';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
-    UsersModule,
     AuthModule,
+    BorrowersModule,
+    LoansModule,
+    UsersModule,
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -23,13 +27,16 @@ import { LoansModule } from './loans/loans.module';
         ssl: {
           rejectUnauthorized: false,
         },
-        synchronize: false,
+        synchronize: true,
       }),
     }),
-    BorrowersModule,
-    LoansModule,
+    TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: 'APP_GUARD', useClass: JwtAuthGuard }],
+  providers: [
+    AppService,
+    SeedService,
+    { provide: 'APP_GUARD', useClass: JwtAuthGuard },
+  ],
 })
 export class AppModule {}
