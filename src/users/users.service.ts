@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserRole } from './enums/user-roles.enums';
+import { UserRole } from './enums/user-role.enums';
 import { UserStatus } from './enums/user-status.enums';
 
 @Injectable()
@@ -30,10 +30,19 @@ export class UsersService {
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
+    // Count how many users exist
+    const userCount = await this.userRepository.count();
+
+    // If first user, force ADMIN role
+    const role =
+      userCount === 0 ? UserRole.ADMIN : (dto.role ?? UserRole.CLERK); // fallback if no role provided
+
     const user = this.userRepository.create({
       email: dto.email,
       passwordHash,
-      role: UserRole.ADMIN,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      role,
       status: UserStatus.ACTIVE,
       createdById: creatorId,
     });
@@ -88,5 +97,13 @@ export class UsersService {
     user.updatedById = updaterId;
 
     return this.userRepository.save(user);
+  }
+
+  getRoles(): string[] {
+    return Object.values(UserRole);
+  }
+
+  async count(): Promise<number> {
+    return this.userRepository.count();
   }
 }

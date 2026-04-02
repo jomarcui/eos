@@ -11,6 +11,7 @@ import { instanceToPlain } from 'class-transformer';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -20,9 +21,8 @@ export class UsersController {
   // Create a new user
   // -------------------------------
   @Post()
-  async create(@Body() dto: CreateUserDto) {
-    // You can optionally pass creatorId if authenticated
-    return this.usersService.create(dto);
+  async create(@Body() dto: CreateUserDto): Promise<User> {
+    return await this.usersService.create(dto);
   }
 
   @Get()
@@ -46,5 +46,16 @@ export class UsersController {
   async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     // You can optionally pass updaterId if authenticated
     return this.usersService.update(id, dto);
+  }
+
+  @Get('roles')
+  getRoles(): string[] {
+    return this.usersService.getRoles();
+  }
+
+  @Get('count')
+  async getCount(): Promise<{ count: number }> {
+    const count = await this.usersService.count();
+    return { count };
   }
 }

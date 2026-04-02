@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "resolvePackageJsonExports": true,
@@ -14,6 +15,12 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@auth/*": ["src/auth/*"],
+      "@common/*": ["src/common/*"],
+      "@users/*": ["src/users/*"],
+      "@config/*": ["src/config/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,

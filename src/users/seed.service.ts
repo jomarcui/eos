@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
-import { UserRole } from './enums/user-roles.enums';
+import { UserRole } from './enums/user-role.enums';
 
 @Injectable()
 export class SeedService implements OnModuleInit {
@@ -14,7 +14,7 @@ export class SeedService implements OnModuleInit {
 
   async onModuleInit() {
     const count = await this.userRepo.count();
-    console.log({ count });
+
     if (process.env.NODE_ENV !== 'production') {
       if (count === 0) {
         const saltRounds = 10;
@@ -24,7 +24,9 @@ export class SeedService implements OnModuleInit {
         );
         await this.userRepo.save([
           {
-            email: 'testuser1@example.com',
+            firstName: 'Jomar',
+            lastName: 'Cui',
+            email: 'jomar.cui@example.com',
             passwordHash: passwordHash,
             role: UserRole.ADMIN,
           },

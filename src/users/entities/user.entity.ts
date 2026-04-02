@@ -1,6 +1,6 @@
 import { Entity, Column } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
-import { UserRole } from '../enums/user-roles.enums';
+import { UserRole } from '../enums/user-role.enums';
 import { UserStatus } from '../enums/user-status.enums';
 
 @Entity('users')
@@ -10,6 +10,12 @@ export class User extends BaseEntity {
 
   @Column({ name: 'password_hash', select: false })
   passwordHash: string;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
 
   @Column({ default: UserRole.ADMIN })
   role: string;

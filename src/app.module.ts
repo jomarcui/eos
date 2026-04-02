@@ -8,7 +8,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtAuthGuard } from './auth/jwt.guard';
 import { BorrowersModule } from './borrowers/borrowers.module';
 import { LoansModule } from './loans/loans.module';
-import { SeedService } from './users/seed.service';
 import { User } from './users/entities/user.entity';
 
 @Module({
@@ -33,10 +32,6 @@ import { User } from './users/entities/user.entity';
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    SeedService,
-    { provide: 'APP_GUARD', useClass: JwtAuthGuard },
-  ],
+  providers: [AppService, { provide: 'APP_GUARD', useClass: JwtAuthGuard }],
 })
 export class AppModule {}
