@@ -14,12 +14,11 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "paths": {
-      "@auth/*": ["src/auth/*"],
-      "@common/*": ["src/common/*"],
-      "@users/*": ["src/users/*"],
-      "@config/*": ["src/config/*"]
+      "@auth/*": ["./src/auth/*"],
+      "@common/*": ["./src/common/*"],
+      "@users/*": ["./src/users/*"],
+      "@config/*": ["./src/config/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

@@ -13,7 +13,7 @@ import {
 import { BorrowersService } from './borrowers.service';
 import { CreateBorrowerDto } from './dto/create-borrower.dto';
 import { UpdateBorrowerDto } from './dto/update-borrower.dto';
-import { JwtAuthGuard } from 'src/auth/jwt.guard';
+import { JwtAuthGuard } from '@auth/jwt.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('borrowers')

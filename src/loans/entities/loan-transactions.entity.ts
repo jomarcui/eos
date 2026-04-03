@@ -8,29 +8,38 @@ import {
   Index,
 } from 'typeorm';
 import { Loan } from './loan.entity';
+import { TransactionType } from '../enums/transaction-type.enum';
 
 @Entity({ name: 'loan_transactions' })
 export class LoanTransaction {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index()
   @Column({ name: 'loan_id' })
-  loanId: string;
+  loanId!: string;
 
   @ManyToOne(() => Loan, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'loan_id' })
-  loan: Loan;
+  loan!: Loan;
 
-  @Column()
-  type: string;
+  @Column({
+    type: 'enum',
+    enum: TransactionType,
+  })
+  type!: string;
 
+  // ✅ Use string for decimal (important!)
   @Column('decimal', { precision: 12, scale: 2 })
-  amount: number;
+  amount!: string;
 
-  @Column({ name: 'reference_number', nullable: true })
-  referenceNumber: string;
+  @Column({
+    name: 'reference_number',
+    type: 'varchar',
+    nullable: true,
+  })
+  referenceNumber!: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 }

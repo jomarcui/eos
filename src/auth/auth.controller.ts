@@ -2,9 +2,9 @@ import type { Response } from 'express';
 import { Controller, Post, Body, Get, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Public } from '@common/decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
-import type { RequestUser } from 'src/common/interfaces/request-user.interface';
+import type { RequestUser } from '@common/interfaces/request-user.interface';
 
 @Controller('auth')
 export class AuthController {

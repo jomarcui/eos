@@ -2,18 +2,18 @@ import { IsUUID, IsNumber, IsDateString, Min } from 'class-validator';
 
 export class CreateLoanDto {
   @IsUUID()
-  borrowerId: string;
+  borrowerId!: string;
 
   @IsNumber()
   @Min(1)
-  principal: number;
+  principal!: number;
 
   @IsNumber()
-  interestRate: number;
+  interestRate!: number;
 
   @IsNumber()
-  termMonths: number;
+  termMonths!: number;
 
   @IsDateString()
-  startDate: Date;
+  startDate!: Date;
 }

@@ -16,58 +16,62 @@ import { LoanSchedule } from './loan-schedule.entity';
 @Entity({ name: 'loans' })
 export class Loan {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'loan_number', unique: true })
-  loanNumber: string;
+  loanNumber!: string;
 
   @Index()
   @Column({ name: 'borrower_id' })
-  borrowerId: string;
+  borrowerId!: string;
 
   @ManyToOne(() => Borrower, (borrower) => borrower.loans, {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'borrower_id' })
-  borrower: Borrower;
+  borrower!: Borrower;
 
+  // ⚠️ Use string for decimal to avoid precision issues
   @Column('decimal', { precision: 12, scale: 2 })
-  principal: number;
+  principal!: string;
 
   @Column('decimal', { name: 'interest_rate', precision: 5, scale: 2 })
-  interestRate: number;
+  interestRate!: string;
 
   @Column({ name: 'term_months', type: 'integer' })
-  termMonths: number;
+  termMonths!: number;
 
   @Column('decimal', { precision: 12, scale: 2 })
-  monthlyPayment: number;
+  monthlyPayment!: string;
 
   @Column('decimal', { precision: 12, scale: 2 })
-  balance: number;
+  balance!: string;
 
   @Column({ name: 'start_date', type: 'date' })
-  startDate: Date;
+  startDate!: Date;
 
   @Column({ name: 'maturity_date', type: 'date' })
-  maturityDate: Date;
+  maturityDate!: Date;
 
+  @Index()
   @Column({
     type: 'enum',
     enum: LoanStatus,
     default: LoanStatus.PENDING,
   })
-  status: LoanStatus;
+  status!: LoanStatus;
 
-  @OneToMany(() => LoanSchedule, (schedule) => schedule.loan)
-  schedules: LoanSchedule[];
+  @OneToMany(() => LoanSchedule, (schedule) => schedule.loan, {
+    cascade: true,
+  })
+  schedules!: LoanSchedule[];
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Column({ name: 'disbursed_at', type: 'timestamp', nullable: true })
-  disbursedAt: Date;
+  disbursedAt!: Date | null;
 }

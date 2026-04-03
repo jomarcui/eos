@@ -29,9 +29,11 @@ export class LoansService {
   async create(dto: CreateLoanDto) {
     const monthlyRate = dto.interestRate / 100 / 12;
 
-    const monthlyPayment =
+    const monthlyPaymentRaw =
       (dto.principal * monthlyRate) /
       (1 - Math.pow(1 + monthlyRate, -dto.termMonths));
+
+    const monthlyPayment = Number(monthlyPaymentRaw.toFixed(2));
 
     const maturityDate = new Date(dto.startDate);
     maturityDate.setMonth(maturityDate.getMonth() + dto.termMonths);
@@ -41,11 +43,11 @@ export class LoansService {
     const loan = this.loanRepository.create({
       loanNumber,
       borrowerId: dto.borrowerId,
-      principal: dto.principal,
-      interestRate: dto.interestRate,
+      principal: dto.principal.toFixed(2),
+      interestRate: dto.interestRate.toFixed(2),
       termMonths: dto.termMonths,
-      monthlyPayment,
-      balance: dto.principal,
+      monthlyPayment: monthlyPayment.toFixed(2),
+      balance: dto.principal.toFixed(2),
       startDate: dto.startDate,
       maturityDate,
     });
